@@ -3,6 +3,8 @@ var temp = require('temp');
 var async = require('async');
 var spawn = require('child_process').spawn;
 
+var docker = require('./docker');
+
 var functions = {
 
   deploy: function (commander, stream) {
@@ -24,9 +26,9 @@ var functions = {
 
     async.waterfall(fns, function (err) {
       if (err) {
-        return console.log('--->'.red, 'Something went wrong: ' + err);
+        return console.log('--->'.red, err);
       }
-      console.log('--->'.green, 'DONE!!!!');
+      console.log('--->'.green, 'DONE');
     });
 
   },
@@ -49,60 +51,73 @@ var functions = {
 
   extractTar: function (state, next) {
 
+    var bailout = false;
     state.stream.resume();
     var tar_stream = state.stream.pipe(tar.Extract({ path: state.path }));
 
     tar_stream.on('error', function (err) {
       next(err);
+      bailout = true;
     });
 
     tar_stream.on('end', function () {
-      console.log('--->'.green, 'Extracted tar to ' + state.path);
-      next(null, state);
+      if (!bailout) {
+        console.log('--->'.green, 'Extracted tar to ' + state.path);
+        next(null, state);
+      }
     });
 
   },
 
   buildDockerImage: function (state, next) {
 
-    var args = ['build', '-t=image-' + state.name + '', state.path ];
-    var docker = spawn('docker', args);
+    var bailout = false;
+    var child = docker('build', '-t', 'image-' + state.name, state.path);
 
-    docker.stdout.on('data', function (data) {
+    child.on('error', function (error) {
+
+      // Exception because docker uses stderr for informal messages.
+      if (error.toString().indexOf('Uploading context') === 0) {
+        return process.stdout.write(error.toString());
+      }
+
+      next(error.toString());
+      bailout = true;
+
+    });
+
+    child.on('data', function (data) {
       process.stdout.write(data.toString());
     });
 
-    docker.stderr.on('data', function (data) {
-      // Would normally stop execution on stderr messages
-      // but docker uses it for formal messages as well.
-      process.stdout.write(data.toString());
-    });
+    child.on('end', function () {
 
-    docker.stdout.on('end', function () {
-      console.log('--->'.green, 'image-' + state.name + ' image created.');
-      next(null, state);
+      if (!bailout) {
+        console.log('--->'.green, 'image-' + state.name + ' image created.');
+        next(null, state);
+      }
+
     });
 
   },
 
   inspectDockerContainer: function (state, next) {
 
-    var args = ['inspect', 'container-' + state.name];
-    var docker = spawn('docker', args);
-    var output = [];
+    var bailout = false;
+    var child = docker('inspect', 'container-' + state.name);
 
-    docker.stdout.on('data', function (data) {
-      output.push(data);
+    child.on('error', function (error) {
+      next(null, state);
+      console.log('--->'.green, 'container-' + state.name + ' doesn\t exist.');
+      bailout = true;
     });
 
-    docker.stderr.on('data', function (data) {
-      next(null, state);
-      next = new Function();
-    });
-
-    docker.stdout.on('end', function () {
-      state.inspect = output.join('');
-      next(null, state);
+    child.on('end', function (error, data) {
+      if (!bailout) {
+        console.log('--->'.green, 'container-' + state.name + ' already exist.');
+        state.inspect = data;
+        next(null, state);
+      }
     });
   
   },
@@ -111,22 +126,26 @@ var functions = {
 
     try {
       JSON.parse(state.inspect);
-      var args = ['kill', 'container-' + state.name];
-      var docker = spawn('docker', args);
 
-      docker.stdout.on('data', function (data) {
-        process.stdout.write(data.toString());
+      var bailout = false;
+      var child = docker('kill', 'container-' + state.name);
+
+      child.on('error', function (error) {
+        next(error);
+        bailout = true;
       });
 
-      docker.stderr.on('data', function (data) {
-        next(data.toString());
-        next = new Function();
+      child.on('data', function (data) {
+        //process.stdout.write(data.toString());
       });
 
-      docker.stdout.on('end', function () {
-        console.log('--->'.green, 'container-' + state.name + ' was killed.');
-        next(null, state);
+      child.on('end', function (error, data) {
+        if (!bailout) {
+          console.log('--->'.green, 'container-' + state.name + ' was killed.');
+          next(null, state);
+        }
       });
+
     } catch (e) {
       next(null, state);
     }
@@ -136,21 +155,24 @@ var functions = {
 
     try {
       JSON.parse(state.inspect);
-      var args = ['rm', 'container-' + state.name];
-      var docker = spawn('docker', args);
 
-      docker.stdout.on('data', function (data) {
-        process.stdout.write(data.toString());
+      var bailout = false;
+      var child = docker('rm', 'container-' + state.name);
+
+      child.on('error', function (error) {
+        next(error.toString());
+        bailout = true;
       });
 
-      docker.stderr.on('data', function (data) {
-        next(data.toString());
-        next = new Function ();
+      child.on('data', function (data) {
+        //process.stdout.write(data.toString());
       });
 
-      docker.stdout.on('end', function () {
-        console.log('--->'.green, 'container-' + state.name + ' was removed.');
-        next(null, state);
+      child.on('end', function (error, data) {
+        if (!bailout) {
+          console.log('--->'.green, 'container-' + state.name + ' was removed.');
+          next(null, state);
+        }
       });
     } catch (e) {
       next(null, state);
@@ -159,22 +181,23 @@ var functions = {
 
   runDockerImage: function (state, next) {
 
-    var args = ['run', '-d', '-name=container-' + state.name, 'image-' + state.name];
-    var docker = spawn('docker', args);
+    var bailout = false;
+    var child = docker('run', '-d', '-name=container-' + state.name, 'image-' + state.name);
 
-    docker.stdout.on('data', function (data) {
-      process.stdout.write(data.toString());
+    child.on('error', function (error) {
+      next(error.toString());
+      bailout = true;
     });
 
-    docker.stderr.on('data', function (data) {
-      // Would normally stop execution on stderr messages
-      // but docker uses it for informal messages as well.
-      process.stdout.write(data.toString());
+    child.on('data', function (data) {
+      //process.stdout.write(data.toString());
     });
 
-    docker.stdout.on('end', function () {
-      console.log('--->'.green, state.name + ' is running');
-      next(null, state);
+    child.on('end', function (error, data) {
+      if (!bailout) {
+        console.log('--->'.green, state.name + ' is running.');
+        next(null, state);
+      }
     });
 
   },
