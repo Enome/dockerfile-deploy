@@ -9,23 +9,22 @@ var docker = function () {
   process.nextTick(function () {
 
     var docker = spawn('docker', args);
-    var data = [];
-    var error = [];
+    var data = '';
+    var error = '';
 
     docker.stderr.on('data', function (chunk) {
-      error.push(chunk);
+      error += chunk;
       ee.emit('error', chunk);
     });
 
     docker.stdout.on('data', function (chunk) {
-      data.push(chunk);
+      data += chunk;
       ee.emit('data', chunk);
     });
 
     docker.stdout.on('end', function () {
-      ee.emit('end', error.toString(), data.toString());
+      ee.emit('end', error, data);
     });
-
     
   });
 
