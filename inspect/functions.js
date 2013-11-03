@@ -17,8 +17,6 @@ var functions = {
 
   inspect: function (name, next) {
     var child = docker('inspect', name);
-    var bailout = false;
-
     child.on('end', function (error, data) {
       next(error, JSON.parse(data)[0]);
     });

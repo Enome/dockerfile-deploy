@@ -2,13 +2,12 @@ require('colors');
 
 var async = require('async');
 var functions = require('./functions');
-var EventEmitter = require('events').EventEmitter;
 
-var ping = function () {
-
-  var ee = new EventEmitter();
+var inspect = function (callback) {
 
   async.waterfall([
+
+    function (next) { next(null, {}); },
 
     function (state, next) {
 
@@ -24,7 +23,7 @@ var ping = function () {
 
       });
 
-    }.bind(null, {}),
+    },
 
     function (state, next) {
 
@@ -41,19 +40,16 @@ var ping = function () {
 
     },
 
-    /*
-    function (state, next) {
-
-    },
-    */
-
   ], function (err, result) {
 
-    console.log('--->'.red, err);
-    console.log('--->'.green, result.inspects);
+    if (err) {
+      return console.log('--->'.red, err);
+    }
+
+    callback(result.inspects);
 
   });
 
 };
 
-setInterval(ping, 1000);
+module.exports = inspect;

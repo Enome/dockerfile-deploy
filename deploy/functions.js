@@ -163,6 +163,7 @@ var functions = {
       });
 
       child.on('data', function (data) {
+        // Verbose?
         //process.stdout.write(data.toString());
       });
 
@@ -188,12 +189,13 @@ var functions = {
     });
 
     child.on('data', function (data) {
+      // Verbose?
       //process.stdout.write(data.toString());
     });
 
     child.on('end', function (error, data) {
       if (!bailout) {
-        console.log('--->'.green, state.name + ' is running.');
+        console.log('--->'.green, 'container-' + state.name + ' is running.');
         next(null, state);
       }
     });
