@@ -4,7 +4,7 @@ var config = {
 
   parse: function (next) {
 
-    fs.readfile('/etc/dockerfile-deploy.json', function (err, data) {
+    fs.readFile('/etc/dockerfile-deploy.json', function (err, data) {
 
       if (err) {
         return next(err); 

@@ -127,7 +127,7 @@ sudo cat<<EFO > /etc/dockerfile-deploy.json
 { "hostname": "dockerfile-deploy.com" }
 EFO
 confirm "Added, configration file at /etc/dockerfile-deploy.json"
-warning "Don't forget change the hostname to your domain." 
+warning "Don't forget to change the hostname to your domain." 
 
 # Start dockerfile-deploy-hipache
 sudo start dockerfile-deploy-hipache

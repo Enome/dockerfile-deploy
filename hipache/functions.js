@@ -69,7 +69,7 @@ var functions = {
         return next(err); 
       }
 
-      state.hostname = data;
+      state.hostname = data.hostname;
       next(null, state);
 
     });
