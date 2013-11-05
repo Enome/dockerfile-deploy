@@ -10,7 +10,7 @@ confirm() {
 }
 
 skipped() {
-  echo "${gray}---> Skipped: ${default}$1"
+  echo "${gray}---> Skipping: ${default}$1"
 }
 
 warning() {
