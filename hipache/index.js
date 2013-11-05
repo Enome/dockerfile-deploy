@@ -1,17 +1,7 @@
 #!/usr/bin/node
-
 require('colors');
-
-var redis = require('redis');
 var async = require('async');
-
-var client = redis.createClient();
-
 var functions = require('./functions');
-
-client.on('error', function (err) {
-  console.log(err);
-});
 
 setInterval(function () {
 

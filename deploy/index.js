@@ -1,7 +1,5 @@
 #!/usr/bin/node
-
 require('colors');
-
 var commander = require('commander');
 var functions = require('./functions');
 
