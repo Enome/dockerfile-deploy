@@ -109,7 +109,7 @@ var functions = {
 
     child.on('error', function (error) {
       next(null, state);
-      console.log('--->'.green, 'container-' + state.name + ' doesn\t exist.');
+      console.log('--->'.green, 'container-' + state.name + ' doesn\'t exist.');
       bailout = true;
     });
 

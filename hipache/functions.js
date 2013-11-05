@@ -2,6 +2,7 @@ require('colors');
 var async = require('async');
 var redis = require('redis');
 var inspect = require('../inspect');
+var config = require('../config');
 
 var functions = {
 
@@ -62,9 +63,15 @@ var functions = {
 
   hostname: function (state, next) {
 
-    state.client.get('hostname', function (err, data) {
+    config.parse(function (err, data) {
+
+      if (err) {
+        return next(err); 
+      }
+
       state.hostname = data;
       next(null, state);
+
     });
 
   },
@@ -118,8 +125,6 @@ var functions = {
 
   addIdentifier: function (state, next) {
 
-    console.log(state.frontend_data);
-
     async.each(state.frontend_data, function (data, callback) {
 
       if (data.redis.length === 0) {
@@ -158,9 +163,34 @@ var functions = {
       return data.redis.indexOf(data.value) === -1;
     });
 
-
     next(null, state);
 
+  },
+
+  trimFrontendLists: function (state, next) {
+
+    async.each(state.frontend_new, function (data, callback) {
+
+      state.client.ltrim([data.key, 0, 0], function (err) {
+
+        if (err) {
+          return callback(err);
+        }
+
+        callback();
+        
+      });
+
+    }, function (err) {
+
+      if (err) {
+        return next(err);
+      }
+
+      next(null, state);
+       
+    });
+  
   },
 
   addNewFrontendsToRedis: function (state, next) {

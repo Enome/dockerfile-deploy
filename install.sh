@@ -37,6 +37,43 @@ confirm "Installed, redis-server has."
 sudo apt-get install -yqq nodejs
 confirm "Installed, Node.js has."
 
+# Use upstart instead of init.d
+sudo /etc/init.d/redis-server stop
+sudo update-rc.d -f redis-server disable
+sudo update-rc.d -f redis-server remove
+ 
+cat <<EOF > /etc/init/redis-server.conf 
+# Credits: https://gist.github.com/rogerleite/5927948/raw/ae1b75db1bce71b9d11556c10143437ae19d71b5/redis-install.sh
+description "Redis Server"
+author "Thomas Woolford <thomas@urpages.com.au>"
+ 
+# run when the local FS becomes available
+start on local-filesystems
+stop on shutdown
+ 
+# The default redis conf has 'daemonize = yes' and will naiively fork itself.
+expect fork
+ 
+# Respawn unless redis dies 10 times in 5 seconds
+respawn
+respawn limit 10 5
+ 
+env NAME=redis
+ 
+# start a default instance
+instance \$NAME
+ 
+# run redis as the correct user
+setuid redis
+setgid redis
+ 
+# run redis with the correct config file for this instance
+exec /usr/bin/redis-server /etc/redis/\${NAME}.conf
+EOF
+ 
+sudo start redis-server
+confirm "Started, redis-server using upstart has."
+
 # Install hipache
 sudo npm i hipache -g
 confirm "Installed, hipache has."
@@ -68,11 +105,9 @@ sudo cat<<EFO > /etc/hipache.json
 EFO
 confirm "Added, hipache upstart script was. '/var/log/hipache_access.log'"
 
-sudo npm install /vagrant -g
+# Install dockerfile-deploy
+sudo npm install dockerfile-deploy -g
 confirm "Install, dockerfile-deploy was."
-
-sudo redis-cli SET hostname dockerfile-deploy.com
-confirm "Added, default hostname (dockerfile-deploy.com) was."
 
 sudo cat<<EFO > /etc/init/dockerfile-deploy-hipache.conf
 start on runlevel [2345]
@@ -85,10 +120,15 @@ script
   sudo dockerfile-deploy-hipache >> /var/log/dockerfile-deploy-hipache
   end script
 EFO
-
 confirm "Installed, dockerfile-deploy-hipache upstart has."
 
+# Add config file
+sudo cat<<EFO > /etc/dockerfile-deploy.json
+{ "hostname": "dockerfile-deploy.com" }
+EFO
+confirm "Added, configration file at /etc/dockerfile-deploy.json"
+warning "Don't forget change the hostname to your domain." 
+
+# Start dockerfile-deploy-hipache
 sudo start dockerfile-deploy-hipache
 confirm "Started, dockerfile-deploy-hipache upstart has. (logs at /var/logs/dockerfile-deploy-hipache)"
-
-warning "Don't forget change the hostname to your domain. 'redis-cli SET hostname yourdomain.tld'"

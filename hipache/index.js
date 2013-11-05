@@ -26,6 +26,7 @@ setInterval(function () {
     functions.getFrontendListsFromRedis,
     functions.addIdentifier,
     functions.filterNewFrontends,
+    functions.trimFrontendLists,
     functions.addNewFrontendsToRedis,
     functions.disconnectRedisClient,
 
