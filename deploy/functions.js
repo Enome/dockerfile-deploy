@@ -3,6 +3,9 @@ var temp = require('temp');
 var async = require('async');
 var docker = require('../docker');
 
+temp.track();
+temp.dir = require('os').tmpdir();
+
 var functions = {
 
   deploy: function (commander, stream) {

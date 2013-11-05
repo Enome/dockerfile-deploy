@@ -43,7 +43,7 @@ var inspect = function (callback) {
   ], function (err, result) {
 
     if (err) {
-      return console.log('--->'.red, err);
+      return console.log('--->'.red, err.toString());
     }
 
     callback(result.inspects);
