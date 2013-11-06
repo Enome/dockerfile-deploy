@@ -14,6 +14,8 @@ warning() {
   echo "${red}---> ${default}$1"
 }
 
+sudo apt-get install -qqy software-properties-common
+
 # Dependency repositories
 sudo add-apt-repository -y ppa:chris-lea/redis-server
 sudo add-apt-repository -y ppa:chris-lea/node.js
