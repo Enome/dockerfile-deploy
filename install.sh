@@ -18,7 +18,7 @@ sudo apt-get install -qqy software-properties-common
 
 # Dependency repositories
 sudo add-apt-repository -y ppa:chris-lea/redis-server
-sudo add-apt-repository -y ppa:chris-lea/node.js
+sudo add-apt-repository -y ppa:chris-lea/node.js-legacy
 sh -c "wget -qO- https://get.docker.io/gpg | apt-key add -"
 sudo sh -c "echo deb http://get.docker.io/ubuntu docker main > /etc/apt/sources.list.d/docker.list"
 
@@ -29,7 +29,7 @@ apt-get install -yqq git
 
 # Docker
 sudo apt-get install -yqq linux-image-extra-`uname -r`
-sudo apt-get install -yqq lxc-docker=0.6.5
+sudo apt-get install -yqq lxc-docker-0.6.5
 confirm "Installed, docker 0.6.5 has."
 
 # Install redis and Node.js
@@ -38,6 +38,10 @@ confirm "Installed, redis-server has."
 
 sudo apt-get install -yqq nodejs
 confirm "Installed, Node.js has."
+
+sudo apt-get install -yqq npm
+sudo npm update npm -g
+confirm "Installed, npm was."
 
 # Use upstart instead of init.d
 sudo /etc/init.d/redis-server stop
@@ -77,7 +81,7 @@ sudo start redis-server
 confirm "Started, redis-server using upstart has."
 
 # Install hipache
-sudo npm i hipache -g
+sudo npm install -g git://github.com/Enome/hipache.git
 confirm "Installed, hipache has."
 
 # Hipache upstart
@@ -93,12 +97,10 @@ sudo cat<<EFO > /etc/hipache.json
 {
   "server": {
     "accessLog": "/var/log/hipache_access.log",
-      "port": 80,
-      "workers": 5,
-      "maxSockets": 100,
-      "deadBackendTTL": 30,
-      "address": ["127.0.0.1"],
-      "address6": ["::1"]
+    "port": 80,
+    "workers": 5,
+    "maxSockets": 100,
+    "deadBackendTTL": 30
   },
   "redisHost": "127.0.0.1",
   "redisPort": 6379,

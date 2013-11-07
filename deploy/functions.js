@@ -4,7 +4,7 @@ var async = require('async');
 var docker = require('../docker');
 
 temp.track();
-temp.dir = require('os').tmpdir();
+temp.dir = '/tmp';
 
 var functions = {
 
