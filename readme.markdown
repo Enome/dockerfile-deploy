@@ -2,11 +2,11 @@
 
 *This is a new project and still needs to be battle tested*
 
-This project consists out of two Node.js apps. The first one (**dockerfile-deploy**) builds a docker image and runs a  container from a Dockerfile in a directory. The second one (**dockerfile-deploy-hipache**) is a long running process that inspects running docker containers and adds their port and ip to hipache (forward proxy).
+This project consists out of two Node.js apps. The first one (**dockerfile-deploy**) builds a docker image and runs a  container from a Dockerfile in a directory. The second one (**dockerfile-deploy-hipache**) is a long running process that inspects running docker containers and adds their port and ip to hipache.
 
 ## Installation
 
-*It's recommended that you use ubuntu 13.04 other versions haven't been tested yet.*
+*It's recommended that you use ubuntu 13.04/64 other versions haven't been tested yet.*
 
 ```sh
 git clone git@github.com:Enome/dockerfile-deploy.git
@@ -35,18 +35,21 @@ The deployment executable (dockerfile-deploy) expects a directory that contains 
 Lets use the directory in `tests/nodejs` as an example.
 
 ```sh
-tar -C tests/nodejs -c . | sudo dockerfile-deploy --name foobar
+tar -C tests/nodejs -c . | sudo dockerfile-deploy --name foobar.com
 ```
 
-The `--name` argument is the name of the project. It is used as a subdomain and as the name for the image and container. This means if you push two projects and give them the same name the second one will overwrite the first.
+The `--name` argument is the name of the project. It is used as the domain, subdomain and as the name for the image and container. This means if you push two projects and give them the same name the second one will overwrite the first.
 
-Each time you pipe a new directory, dockerfile-deploy will build the image and check if a container with that name is already running. If it is running the container will be stopped and removed and a new container will start.
+Each time you pipe a new directory dockerfile-deploy will build the image and check if a container with that name is already running. If it is running the container will be stopped and removed and a new container will start.
 
-If your settings file has the hostname `dockerfile-deploy.com` and we named the project `foobar` then hipache will proxy `foobar.dockerfile-deploy.com` to the ip and port of the container. 
+If your settings file has the hostname `dockerfile-deploy.com` and we named the project `foobar.com` then hipache will add the following frontends:
 
-The Dockerfile also needs to have an `ENTRYPOINT` and/or `CMD` as the containers are run without any arguments. In this case `docker run container-foobar` with `ENTRYPOINT ["node", "/app/index.js"]`. Container and image names are prefixed with `container-` and `image-`.
+- frontend:foobar.com.dockerfile-deploy.com
+- frontend:foobar.com
+- frontend:\*.foobar.com
 
-If you point the domain `foobar.dockerfile-deploy.com` (dns) at the server you now should see your container being served.
+The Dockerfile also needs to have an `ENTRYPOINT` and/or `CMD` as the containers are run without any arguments. In this case `docker run container-foobar.com` with `ENTRYPOINT ["node", "/app/index.js"]`. Container and image names are prefixed with `container-` and `image-`.
+
 
 ## Customize hipache
 

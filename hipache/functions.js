@@ -76,7 +76,7 @@ var functions = {
 
   },
 
-  createFrontendData: function (state, next) {
+  createSubDomainFrontendData: function (state, next) {
 
     state.frontend_data = state.info.map(function (i) {
       var subdomain = i.name;
@@ -90,6 +90,40 @@ var functions = {
       };
 
     });
+
+    next(null, state);
+
+  },
+
+  createDomainFrontendData: function (state, next) {
+
+    var domain_data = state.info.map(function (i) {
+      return {
+        key: 'frontend:' + i.name,
+        value: 'http://' + i.ip + ':' + i.port,
+        name: i.name,
+      };
+
+    });
+
+    state.frontend_data.push.apply(state.frontend_data, domain_data);
+
+    next(null, state);
+
+  },
+
+  createWildcardDomainFrontendData: function (state, next) {
+
+    var domain_data = state.info.map(function (i) {
+      return {
+        key: 'frontend:*.' + i.name,
+        value: 'http://' + i.ip + ':' + i.port,
+        name: i.name,
+      };
+
+    });
+
+    state.frontend_data.push.apply(state.frontend_data, domain_data);
 
     next(null, state);
 

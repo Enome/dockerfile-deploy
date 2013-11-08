@@ -1,6 +1,6 @@
 {
   "name": "dockerfile-deploy",
-  "version": "0.0.1",
+  "version": "0.1.1",
   "description": "Deploy any directory with a Dockerfile file.",
   "dependencies": {
     "async": "~0.2.9",

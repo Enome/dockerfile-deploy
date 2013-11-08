@@ -12,7 +12,9 @@ setInterval(function () {
     functions.inspect,
     functions.info,
     functions.hostname,
-    functions.createFrontendData,
+    functions.createSubDomainFrontendData,
+    functions.createDomainFrontendData,
+    functions.createWildcardDomainFrontendData,
     functions.getFrontendListsFromRedis,
     functions.addIdentifier,
     functions.filterNewFrontends,
@@ -27,6 +29,5 @@ setInterval(function () {
     }
 
   });
-
 
 }, 2000);

@@ -6,7 +6,7 @@ source utils.sh
 
 # Update host file
 hostfile="/etc/hosts"
-hostsettings="11.0.0.2 dockerfile-deploy.com nodejs.dockerfile-deploy.com" 
+hostsettings="11.0.0.2 node.js.dockerfile-deploy.com node.js www.node.js" 
 
 if grep -q "$hostsettings" $hostfile; 
   then
@@ -20,7 +20,7 @@ if grep -q "$hostsettings" $hostfile;
     esac
 fi
 
-read -p "${green}--->${default} Destroying and starting vagrant. Continue (y/n)? " choice
+read -p "${green}--->${default} Destroy and start vagrant? (y/n)? " choice
 case "$choice" in 
   y|Y ) vagrant destroy -f && vagrant up;;
   n|N ) ;;
