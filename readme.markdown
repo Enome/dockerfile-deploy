@@ -20,7 +20,7 @@ This will install the following.
 - git
 - redis
 - redis upstart (respawn, start on boot)
-- docker (version is locked to 0.6.5 since it's still under heavy development)
+- docker (version is locked to 0.6.6 since it's still under heavy development)
 - hipache (Global Node.js module)
 - hipache upstart (respawn, start on boot)
 - dockerfile-deploy (Global Node.js module)
@@ -48,8 +48,27 @@ If your settings file has the hostname `dockerfile-deploy.com` and we named the 
 - frontend:foobar.com
 - frontend:\*.foobar.com
 
-The Dockerfile also needs to have an `ENTRYPOINT` and/or `CMD` as the containers are run without any arguments. In this case `docker run container-foobar.com` with `ENTRYPOINT ["node", "/app/index.js"]`. Container and image names are prefixed with `container-` and `image-`.
+The Dockerfile also needs to have an `ENTRYPOINT` and/or `CMD` as the containers are run without any command arguments. In this case `docker run container-foobar.com` with `ENTRYPOINT ["node", "/app/index.js"]`. Container and image names are prefixed with `container-` and `image-`.
 
+### dockerfile-deploy.json
+
+In the root of your directory you can add a `dockerfile-deploy.json` to pass custom arguments to the `docker run` command. 
+
+The following example (check tests/postgresql) will add a volume to your container and expose port 5432:
+
+```json
+{
+  "run-args": ["-v", "/tmp/data:/data", "-p", "5432:5432"]
+}
+```
+
+This runs:
+
+```sh
+docker run -d -name=container-postgresql -v /tmp/data:/data -p 5432:5432 image-postgresql
+```
+
+In the tests this is used to presist data between deployments for Postgresql and exposes port 5432 for testing.
 
 ## Customize hipache
 
@@ -109,3 +128,7 @@ The tests will use vagrant to setup a vm so make sure you have vagrant installed
 ```sh
 ./tests/run-tests.sh
 ```
+
+## License
+
+*MIT*

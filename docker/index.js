@@ -1,3 +1,5 @@
+require('colors');
+
 var spawn = require('child_process').spawn;
 var EventEmitter = require('events').EventEmitter;
 
@@ -22,7 +24,8 @@ var docker = function () {
       ee.emit('data', chunk);
     });
 
-    docker.stdout.on('end', function () {
+    docker.stdout.on('close', function () {
+      console.log('--->'.grey, 'docker', args.join(' '));
       ee.emit('end', error, data);
     });
     

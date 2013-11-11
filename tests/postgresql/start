@@ -1,0 +1,27 @@
+#!/bin/bash
+
+DATADIR=/data
+BIN="/usr/lib/postgresql/9.2/bin/postgres"
+POSTGRES="$BIN -D $DATADIR -c config_file=/etc/postgresql/9.2/main/postgresql.conf -c listen_addresses=*"
+
+echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/9.2/main/pg_hba.conf
+sed -r -i.bak "s/(data_directory = ).*'/\1'\/data'/g" /etc/postgresql/9.2/main/postgresql.conf
+
+if [ ! -d $DATADIR ]; 
+  then
+    echo "Creating Postgres data at $DATADIR"
+    mkdir -p $DATADIR
+fi
+
+if [ ! "$(ls -A $DATADIR)" ];
+  then
+    chown -R postgres /data
+    su postgres -c "/usr/lib/postgresql/9.2/bin/initdb /data"
+fi
+
+su postgres sh -c "$BIN --single -D $DATADIR -c config_file=/etc/postgresql/9.2/main/postgresql.conf" <<< "CREATE DATABASE foobar;"
+su postgres sh -c "$BIN --single -D $DATADIR -c config_file=/etc/postgresql/9.2/main/postgresql.conf" <<< "CREATE USER foo WITH PASSWORD 'bar';"
+su postgres sh -c "$BIN --single -D $DATADIR -c config_file=/etc/postgresql/9.2/main/postgresql.conf" <<< "GRANT ALL PRIVILEGES ON foobar TO foo;"
+
+# Start database
+su postgres -c "$POSTGRES"
