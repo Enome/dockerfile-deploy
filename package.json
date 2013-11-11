@@ -1,6 +1,6 @@
 {
   "name": "dockerfile-deploy",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Deploy any directory with a Dockerfile file.",
   "dependencies": {
     "async": "~0.2.9",
@@ -10,7 +10,6 @@
     "tar": "~0.1.18",
     "temp": "~0.6.0",
     "node-http-proxy": "git://github.com/nodejitsu/node-http-proxy#caronte"
-
   },
   "bin": {
     "dockerfile-deploy": "./deploy/index.js",
