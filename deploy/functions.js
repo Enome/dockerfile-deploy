@@ -1,3 +1,4 @@
+var fs = require('fs');
 var tar = require('tar');
 var temp = require('temp');
 var async = require('async');
@@ -22,7 +23,9 @@ var functions = {
       functions.inspectDockerContainer,
       functions.killDockerContainer,
       functions.removeDockerContainer,
+      functions.parseDockerfileDeployJson,
       functions.runDockerImage,
+      functions.logDockerContainer,
     ];
 
     async.waterfall(fns, function (err) {
@@ -82,8 +85,8 @@ var functions = {
         return process.stdout.write(error.toString());
       }
 
-      next(error.toString());
       bailout = true;
+      next(error.toString());
 
     });
 
@@ -104,21 +107,21 @@ var functions = {
 
   inspectDockerContainer: function (state, next) {
 
-    var bailout = false;
     var child = docker('inspect', 'container-' + state.name);
 
-    child.on('error', function (error) {
-      next(null, state);
-      console.log('--->'.green, 'container-' + state.name + ' doesn\'t exist.');
-      bailout = true;
-    });
+    child.on('error', function () {});
 
     child.on('end', function (error, data) {
-      if (!bailout) {
-        console.log('--->'.green, 'container-' + state.name + ' already exist.');
+
+      if (error) {
+        console.log('--->'.green, 'container-' + state.name + ' doesn\'t exist.');
+      } else {
+        console.log('--->'.green, 'container-' + state.name + ' exist.');
         state.inspect = data;
-        next(null, state);
       }
+
+      next(null, state);
+
     });
   
   },
@@ -128,23 +131,23 @@ var functions = {
     try {
       JSON.parse(state.inspect);
 
-      var bailout = false;
       var child = docker('kill', 'container-' + state.name);
 
-      child.on('error', function (error) {
-        next(error);
-        bailout = true;
-      });
+      child.on('error', function (error) {});
 
       child.on('data', function (data) {
         //process.stdout.write(data.toString());
       });
 
       child.on('end', function (error, data) {
-        if (!bailout) {
-          console.log('--->'.green, 'container-' + state.name + ' was killed.');
-          next(null, state);
+
+        if (error) {
+          return next(error);        
         }
+
+        console.log('--->'.green, 'container-' + state.name + ' was killed.');
+        next(null, state);
+
       });
 
     } catch (e) {
@@ -157,13 +160,9 @@ var functions = {
     try {
       JSON.parse(state.inspect);
 
-      var bailout = false;
       var child = docker('rm', 'container-' + state.name);
 
-      child.on('error', function (error) {
-        next(error.toString());
-        bailout = true;
-      });
+      child.on('error', function (error) {});
 
       child.on('data', function (data) {
         // Verbose?
@@ -171,25 +170,60 @@ var functions = {
       });
 
       child.on('end', function (error, data) {
-        if (!bailout) {
-          console.log('--->'.green, 'container-' + state.name + ' was removed.');
-          next(null, state);
+
+        if (error) {
+          return next(error); 
         }
+
+        console.log('--->'.green, 'container-' + state.name + ' was removed.');
+        next(null, state);
+
       });
     } catch (e) {
       next(null, state);
     }
   },
 
+  parseDockerfileDeployJson: function (state, next) {
+
+    fs.readFile(state.path + '/dockerfile-deploy.json', function (err, data) {
+
+      if (err) {
+
+        if (err.code === 'ENOENT') {
+          console.log('--->'.grey, 'No dockerfile-deploy.json file found, skipping.');
+          return next(null, state);
+        }
+
+        return next(err); 
+
+      }
+
+      try {
+        state.dockerfile_deploy_json = JSON.parse(data);
+      } catch (e) {
+        return next('Parsing dockerfile-deploy.json resulted in the following error: ' + e);
+      }
+
+      next(null, state);
+    
+    });
+  
+  },
+
   runDockerImage: function (state, next) {
 
-    var bailout = false;
-    var child = docker('run', '-d', '-name=container-' + state.name, 'image-' + state.name);
+    var args = ['run', '-d', '-name=container-' + state.name];
 
-    child.on('error', function (error) {
-      next(error.toString());
-      bailout = true;
-    });
+    if (state.dockerfile_deploy_json && state.dockerfile_deploy_json['run-args']) {
+      args.push.apply(args, state.dockerfile_deploy_json['run-args']);
+    }
+
+    args.push('image-' + state.name);
+
+    var child = docker.apply(docker, args);
+
+    child.on('error', function (error) {});
 
     child.on('data', function (data) {
       // Verbose?
@@ -197,13 +231,39 @@ var functions = {
     });
 
     child.on('end', function (error, data) {
-      if (!bailout) {
-        console.log('--->'.green, 'container-' + state.name + ' is running.');
-        next(null, state);
+
+      if (error) {
+        return next(error);
       }
+
+      console.log('--->'.green, 'running container-', state.name);
+      next(null, state);
+
     });
 
   },
+
+  logDockerContainer: function (state, next) {
+
+    var child = docker('logs', 'container-' + state.name);
+
+    child.on('error', function (error) {});
+
+    child.on('end', function (error, data) {
+
+      if (error) {
+        console.log('--->'.red, error);
+      }
+
+      if (data) {
+        console.log('--->'.green, data);
+      }
+
+      next(null, state);
+
+    });
+  
+  }
 
 };
 
