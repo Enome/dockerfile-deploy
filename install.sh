@@ -29,7 +29,7 @@ apt-get install -yqq git
 
 # Docker
 sudo apt-get install -yqq linux-image-extra-`uname -r`
-sudo apt-get install -yqq lxc-docker-0.6.5
+sudo apt-get install -yqq lxc-docker-0.6.6
 confirm "Installed, docker 0.6.6 has."
 
 # Install redis and Node.js
