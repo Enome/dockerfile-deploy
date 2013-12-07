@@ -1,8 +1,6 @@
 # Dockerfile-deploy
 
-*This is a new project and still needs to be battle tested*
-
-This project consists out of two Node.js apps. The first one (**dockerfile-deploy**) builds a docker image and runs a  container from a Dockerfile in a directory. The second one (**dockerfile-deploy-hipache**) is a long running process that inspects running docker containers and adds their port and ip to hipache.
+This project will install [tarcker](http://github.com/enome/tarcker) and [dopache](http://github.com/enome/tarcker) and all it's dependencies. I use this to deploy directories with a Dockerfile to my Digitalocean Droplet.
 
 ## Installation
 
@@ -23,52 +21,12 @@ This will install the following.
 - docker (version is locked to 0.6.6 since it's still under heavy development)
 - hipache (Global Node.js module)
 - hipache upstart (respawn, start on boot)
-- dockerfile-deploy (Global Node.js module)
-- dockerfile-deploy-hipache upstart script (respawn, start on boot).
-
-After it's done installing you should edit the `/etc/dockerfile-deploy.json` file and add your own domain. If you rather install this manually take a look at the install file.
+- dopache
+- tarcker
 
 ## Usage
 
-The deployment executable (dockerfile-deploy) expects a directory that contains a Dockerfile. We use tar to transport that directory.
-
-Lets use the directory in `tests/nodejs` as an example.
-
-```sh
-tar -C tests/nodejs -c . | sudo dockerfile-deploy --name foobar.com
-```
-
-The `--name` argument is the name of the project. It is used as the domain, subdomain and as the name for the image and container. This means if you push two projects and give them the same name the second one will overwrite the first.
-
-Each time you pipe a new directory dockerfile-deploy will build the image and check if a container with that name is already running. If it is running the container will be stopped and removed and a new container will start.
-
-If your settings file has the hostname `dockerfile-deploy.com` and we named the project `foobar.com` then hipache will add the following frontends:
-
-- frontend:foobar.com.dockerfile-deploy.com
-- frontend:foobar.com
-- frontend:\*.foobar.com
-
-The Dockerfile also needs to have an `ENTRYPOINT` and/or `CMD` as the containers are run without any command arguments. In this case `docker run container-foobar.com` with `ENTRYPOINT ["node", "/app/index.js"]`. Container and image names are prefixed with `container-` and `image-`.
-
-### dockerfile-deploy.json
-
-In the root of your directory you can add a `dockerfile-deploy.json` to pass custom arguments to the `docker run` command. 
-
-The following example (check tests/postgresql) will add a volume to your container and expose port 5432:
-
-```json
-{
-  "run-args": ["-v", "/tmp/data:/data", "-p", "5432:5432"]
-}
-```
-
-This runs:
-
-```sh
-docker run -d -name=container-postgresql -v /tmp/data:/data -p 5432:5432 image-postgresql
-```
-
-In the tests this is used to presist data between deployments for Postgresql and exposes port 5432 for testing.
+Check the dopache and tarcker repository on how to use them. 
 
 ## Customize hipache
 
@@ -77,12 +35,6 @@ If you want to change the hipache settings you need to edit `/etc/hipache.json` 
 ## File and log locations
 
 ```sh
-# docker-deploy settings (doesn't need restart on change)
-/etc/dockerfile-deploy.json
-
-# dockerfile-deploy-hipache log
-/var/log/dockerfile-deploy-hipache
-
 # Hipache settings (needs restart on change)
 /etc/hipache.json 
 
@@ -111,8 +63,8 @@ redis-cli ping
 # Check if hipache is running
 status hipache
 
-# Check if dockerfile-deploy-hipache is running
-status dockerfile-deploy-hipache
+# Check if dopache is running
+status dopache
 
 # Tar over ssh
 tar -C mydir -c . | ssh user@ip 'sudo dockerfile-deploy'

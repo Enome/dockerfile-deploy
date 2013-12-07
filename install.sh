@@ -47,6 +47,10 @@ confirm "Installed, npm was."
 sudo /etc/init.d/redis-server stop
 sudo update-rc.d -f redis-server disable
 sudo update-rc.d -f redis-server remove
+
+# Disable RBD/Enable AOF
+sudo sed -ri "s/(^save.*)/#\1/g" /etc/redis/redis.conf
+sudo sed -ri 's/appendonly no/appendonly yes/g' /etc/redis/redis.conf
  
 cat <<EOF > /etc/init/redis-server.conf 
 # Credits: https://gist.github.com/rogerleite/5927948/raw/ae1b75db1bce71b9d11556c10143437ae19d71b5/redis-install.sh
@@ -109,30 +113,9 @@ sudo cat<<EFO > /etc/hipache.json
 EFO
 confirm "Added, hipache upstart script was. '/var/log/hipache_access.log'"
 
-# Install dockerfile-deploy
-sudo npm install dockerfile-deploy -g
-confirm "Install, dockerfile-deploy was."
+# Tarcker
+sudo npm install tarcker -g
+confirm "Installed, tarcker was."
 
-sudo cat<<EFO > /etc/init/dockerfile-deploy-hipache.conf
-start on runlevel [2345]
-stop on runlevel [06]
-
-respawn
-respawn limit 15 5
-
-script
-  sudo dockerfile-deploy-hipache >> /var/log/dockerfile-deploy-hipache
-  end script
-EFO
-confirm "Installed, dockerfile-deploy-hipache upstart has."
-
-# Add config file
-sudo cat<<EFO > /etc/dockerfile-deploy.json
-{ "hostname": "dockerfile-deploy.com" }
-EFO
-confirm "Added, configration file at /etc/dockerfile-deploy.json"
-warning "Don't forget to change the hostname to your domain." 
-
-# Start dockerfile-deploy-hipache
-sudo start dockerfile-deploy-hipache
-confirm "Started, dockerfile-deploy-hipache upstart has. (logs at /var/logs/dockerfile-deploy-hipache)"
+# Dopache
+curl https://raw.github.com/Enome/dopache/master/install_ubuntu.sh | sudo sh

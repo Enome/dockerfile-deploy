@@ -4,9 +4,15 @@ cd "$(dirname "$0")" # Set working directory
 source utils.sh
 
 deploy() {
-  tar -C nodejs -c . | vagrant ssh -- sudo dockerfile-deploy --name node.js
+  tar -C nodejs -c . | vagrant ssh -- sudo tarcker --name node.js
   sleep 2
 }
+
+# Setup
+
+vagrant ssh -- redis-cli set dopache:node.js node.js:3000
+vagrant ssh -- redis-cli set dopache:node.js.dockerfile-deploy.com node.js:3000
+vagrant ssh -- redis-cli set dopache:www.node.js node.js:3000
 
 # Test 1
 
@@ -45,6 +51,7 @@ sed -i "s/Node.js application/Express.js application/g" nodejs/index.js
 
 # Test 3
 
+exit
 description="curl nodejs.dockerfile-deploy.com returns 'Node.js application after restarting the vm'."
 vagrant halt && vagrant up
 

@@ -1,0 +1,11 @@
+{
+  "create": {
+    "Volumes": { "/data": {} },
+    "ExposedPorts": { "5432/tcp": {} }
+  },
+
+  "start": {
+    "Binds": ["/tmp/data:/data"],
+    "PortBindings": { "5432/tcp": [ { "HostIp": "0.0.0.0", "HostPort": "5432" } ] }
+  }
+}

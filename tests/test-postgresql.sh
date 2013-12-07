@@ -4,7 +4,7 @@ cd "$(dirname "$0")" # Set working directory
 source utils.sh
 
 deploy() {
-  tar -C postgresql -c . | vagrant ssh -- sudo node /vagrant/deploy/index.js --name postgresql
+  tar -C postgresql -c . | vagrant ssh -- sudo tarcker --name postgresql
   sleep 5 
 }
 
