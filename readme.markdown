@@ -1,6 +1,6 @@
 # Dockerfile-deploy
 
-This project will install [tarcker](http://github.com/enome/tarcker) and [dopache](http://github.com/enome/tarcker) and all it's dependencies. I use this to deploy directories with a Dockerfile to my Digitalocean Droplet.
+This project will install [tarcker](http://github.com/enome/tarcker) and [dopache](https://github.com/enome/dopache) and all it's dependencies. I use this to deploy directories with a Dockerfile to my Digitalocean Droplet.
 
 ## Installation
 
